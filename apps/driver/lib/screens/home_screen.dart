@@ -201,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             Positioned(
               right: 16,
-              bottom: 268,
+              bottom: 16,
               child: FloatingActionButton(
                 heroTag: 'driver-home-recenter',
                 onPressed: _centerMapOnCurrentLocation,
@@ -212,15 +212,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: const Icon(Icons.my_location_rounded),
               ),
             ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: SafeArea(
-                top: false,
-                child: _buildBottomSheet(context),
+            if (_destination == null)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: SafeArea(
+                  top: false,
+                  child: _buildBottomSheet(context),
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -376,86 +377,39 @@ class _HomeScreenState extends State<HomeScreen> {
                         shadowColor: TruxifyColors.error,
                       ),
                     ),
-                    Marker(
-                      point: center,
-                      width: 56,
-                      height: 56,
-                      alignment: Alignment.center,
-                      child: const _TruckMarker(),
-                    ),
                   ],
                 ),
               ],
             ),
-            if (showDestinationChip)
+            if (_destination != null)
               Positioned(
-                left: 12,
-                right: 12,
-                top: 132,
+                left: 0,
+                right: 0,
+                bottom: 16,
                 child: SafeArea(
-                  bottom: false,
-                  child: AppCard(
-                    color: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 38,
-                          height: 38,
-                          decoration: BoxDecoration(
-                            color: TruxifyColors.accent.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.alt_route_rounded,
-                            color: TruxifyColors.accent,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Route ready',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelMedium
-                                    ?.copyWith(
-                                      color:
-                                          TruxifyColors.adaptiveSecondaryText(
-                                              context),
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                  top: false,
+                  child: Center(
+                    child: SizedBox(
+                      width: 140,
+                      height: 48,
+                      child: Material(
+                        color: TruxifyColors.success,
+                        borderRadius: BorderRadius.circular(999),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(999),
+                          onTap: _completeRide,
+                          child: const Center(
+                            child: Text(
+                              'Start',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
                               ),
-                              const SizedBox(height: 2),
-                              Text(
-                                '$_currentLocationLabel -> ${_destination!.address}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                              ),
-                            ],
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        TextActionButton(
-                          label: 'Change',
-                          onPressed: _openDestinationPicker,
-                        ),
-                        const SizedBox(width: 6),
-                        TextActionButton(
-                          label: 'Complete ride',
-                          onPressed: _completeRide,
-                          color: TruxifyColors.success,
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -524,7 +478,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(14, 14, 10, 14),
+          padding: const EdgeInsets.fromLTRB(14, 4, 10, 4),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -534,14 +488,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     const _PulsingLocationDot(),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 2),
                     SizedBox(
-                      height: 38,
+                      height: 28,
                       child: CustomPaint(
                         painter: _DashedLinePainter(color: TruxifyColors.border),
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 2),
                     Container(
                       width: 16,
                       height: 16,
@@ -581,8 +535,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(width: 8),
                           SizedBox(
-                            width: 34,
-                            height: 34,
+                            width: 28,
+                            height: 28,
                             child: Material(
                               color: TruxifyColors.white,
                               shape: const CircleBorder(),
@@ -591,7 +545,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 onTap: _centerMapOnCurrentLocation,
                                 child: _isRefreshingLocation
                                     ? const Padding(
-                                        padding: EdgeInsets.all(8),
+                                        padding: EdgeInsets.all(4.0),
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
                                           color: TruxifyColors.accent,
@@ -608,9 +562,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Divider(height: 1, thickness: 1, color: TruxifyColors.subtleBorder),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 4),
                     AnimatedSwitcher(
                       duration: const Duration(milliseconds: 220),
                       switchInCurve: Curves.easeOut,
@@ -724,7 +676,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      padding: const EdgeInsets.only(top: 10, bottom: 12),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -737,29 +689,32 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          SizedBox(
-            height: 128,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              scrollDirection: Axis.horizontal,
-              itemCount: 5,
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
-              itemBuilder: (context, index) {
-                final metric = _driverMetricCards()[index];
-                return _MetricCard(metric: metric);
-              },
-            ),
-          ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: SizedBox(
-              width: double.infinity,
-              child: _OnlineToggleButton(
-                isOnline: _isOnline,
-                onPressed: _toggleOnlineState,
+          Row(
+            children: [
+              Expanded(
+                child: _MetricCard(metric: _driverMetricCards()[0]),
               ),
-            ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _MetricCard(metric: _driverMetricCards()[1]),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _MetricCard(metric: _driverMetricCards()[2]),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _MetricCard(metric: _driverMetricCards()[3]),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _MetricCard(metric: _driverMetricCards()[4]),
+              ),
+            ],
           ),
         ],
       ),
@@ -804,74 +759,6 @@ class _HomeScreenState extends State<HomeScreen> {
         iconColor: TruxifyColors.accent,
       ),
     ];
-  }
-}
-
-class _TruckMarker extends StatefulWidget {
-  const _TruckMarker();
-
-  @override
-  State<_TruckMarker> createState() => _TruckMarkerState();
-}
-
-class _TruckMarkerState extends State<_TruckMarker>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl = AnimationController(
-    vsync: this,
-    duration: const Duration(milliseconds: 1400),
-  )..repeat(reverse: true);
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _ctrl,
-      builder: (_, __) {
-        final pulse = 1.0 + _ctrl.value * 0.20;
-        return Stack(
-          alignment: Alignment.center,
-          children: [
-            Transform.scale(
-              scale: pulse,
-              child: Container(
-                width: 52,
-                height: 52,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE65100),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE65100),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFE65100).withValues(alpha: 0.45),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.local_shipping_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-          ],
-        );
-      },
-    );
   }
 }
 
@@ -1070,49 +957,6 @@ class _MetricCard extends StatelessWidget {
   }
 }
 
-class _OnlineToggleButton extends StatelessWidget {
-  const _OnlineToggleButton({required this.isOnline, required this.onPressed});
-
-  final bool isOnline;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final backgroundColor = isOnline ? TruxifyColors.success : Colors.grey.shade400;
-    final label = isOnline ? 'Go Offline' : 'Go Online';
-
-    return Material(
-      color: backgroundColor,
-      borderRadius: BorderRadius.circular(999),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(999),
-        onTap: onPressed,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                isOnline ? Icons.toggle_on_rounded : Icons.toggle_off_rounded,
-                color: Colors.white.withValues(alpha: 0.9),
-                size: 24,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _SearchFieldPill extends StatelessWidget {
   const _SearchFieldPill({
     super.key,
@@ -1134,7 +978,7 @@ class _SearchFieldPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           child: child,
         ),
       ),
