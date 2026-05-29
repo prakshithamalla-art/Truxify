@@ -31,7 +31,7 @@ class TimelineMilestone extends StatelessWidget {
             color: color,
             shape: BoxShape.circle,
             boxShadow: current
-                ? [BoxShadow(color: FreightFairColors.accent.withOpacity(0.3), blurRadius: 8, spreadRadius: 1)]
+                ? [BoxShadow(color: FreightFairColors.accent.withValues(alpha: 0.3), blurRadius: 8, spreadRadius: 1)]
                 : const [],
           ),
         ),
