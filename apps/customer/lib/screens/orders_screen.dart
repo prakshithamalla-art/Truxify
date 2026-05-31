@@ -17,32 +17,37 @@ class OrdersScreen extends StatefulWidget {
 }
 
 class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderStateMixin {
-  TabController? _tabController;
+  late final TabController _tabController;
   TruxifyController? _controller;
   final TextEditingController _searchController = TextEditingController();
   bool _isSearching = false;
   String _searchQuery = '';
 
   @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        _controller?.setOrdersTab(_tabController.index);
+      }
+    });
+  }
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final controller = TruxifyScope.of(context);
-    if (_tabController == null) {
-      _controller = controller;
-      _tabController = TabController(length: 2, vsync: this, initialIndex: controller.ordersTabIndex);
-      _tabController!.addListener(() {
-        if (!_tabController!.indexIsChanging) {
-          _controller?.setOrdersTab(_tabController!.index);
-        }
-      });
-    } else if (_tabController!.index != controller.ordersTabIndex && !_tabController!.indexIsChanging) {
-      _tabController!.animateTo(controller.ordersTabIndex);
+    _controller = controller;
+
+    if (_tabController.index != controller.ordersTabIndex && !_tabController.indexIsChanging) {
+      _tabController.animateTo(controller.ordersTabIndex);
     }
   }
 
   @override
   void dispose() {
-    _tabController?.dispose();
+    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -104,11 +109,6 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final tabController = _tabController;
-    if (tabController == null) {
-      return const SizedBox.shrink();
-    }
-
     return SafeArea(
       child: Column(
         children: [
@@ -124,13 +124,13 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
             child: TabBar(
-              controller: tabController,
+              controller: _tabController,
               tabs: const [Tab(text: 'Active'), Tab(text: 'History')],
             ),
           ),
           Expanded(
             child: TabBarView(
-              controller: tabController,
+              controller: _tabController,
               children: [
                 ListView.separated(
                   padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
