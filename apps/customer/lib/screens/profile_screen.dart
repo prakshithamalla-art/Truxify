@@ -52,7 +52,9 @@ class ProfileScreen extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white.withValues(alpha: 0.4), width: 3),
+                          border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.4),
+                              width: 3),
                         ),
                         alignment: Alignment.center,
                         child: const Text(
@@ -95,8 +97,10 @@ class ProfileScreen extends StatelessWidget {
                   top: 20,
                   right: 20,
                   child: IconButton(
-                    onPressed: () => Navigator.of(context).push(AppPageRoute(builder: (_) => const EditProfileScreen())),
-                    icon: const Icon(Icons.edit_rounded, color: Colors.white, size: 24),
+                    onPressed: () => Navigator.of(context).push(AppPageRoute(
+                        builder: (_) => const EditProfileScreen())),
+                    icon: const Icon(Icons.edit_rounded,
+                        color: Colors.white, size: 24),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                     splashRadius: 20,
@@ -112,7 +116,9 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 10),
-            _SectionLabel(text: 'Account', padding: const EdgeInsets.symmetric(horizontal: 16)),
+            _SectionLabel(
+                text: 'Account',
+                padding: const EdgeInsets.symmetric(horizontal: 16)),
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -121,24 +127,29 @@ class ProfileScreen extends StatelessWidget {
                   MenuItem(
                     icon: Icons.credit_card_rounded,
                     label: 'Payment Methods',
-                    onTap: () => Navigator.of(context).push(AppPageRoute(builder: (_) => const PaymentMethodsScreen())),
+                    onTap: () => Navigator.of(context).push(AppPageRoute(
+                        builder: (_) => const PaymentMethodsScreen())),
                   ),
                   MenuItem(
                     icon: Icons.description_rounded,
                     label: 'My Documents',
-                    onTap: () => Navigator.of(context).push(AppPageRoute(builder: (_) => const MyDocumentsScreen())),
+                    onTap: () => Navigator.of(context).push(AppPageRoute(
+                        builder: (_) => const MyDocumentsScreen())),
                   ),
                   MenuItem(
                     icon: Icons.location_on_rounded,
                     label: 'Saved Addresses',
                     showDivider: false,
-                    onTap: () => Navigator.of(context).push(AppPageRoute(builder: (_) => const SavedAddressesScreen())),
+                    onTap: () => Navigator.of(context).push(AppPageRoute(
+                        builder: (_) => const SavedAddressesScreen())),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 12),
-            _SectionLabel(text: 'Preferences', padding: const EdgeInsets.symmetric(horizontal: 16)),
+            _SectionLabel(
+                text: 'Preferences',
+                padding: const EdgeInsets.symmetric(horizontal: 16)),
             const SizedBox(height: 8),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -149,18 +160,21 @@ class ProfileScreen extends StatelessWidget {
                     icon: Icons.language_rounded,
                     label: 'Language',
                     trailing: 'English',
-                    onTap: () => Navigator.of(context).push(AppPageRoute(builder: (_) => const LanguageScreen())),
+                    onTap: () => Navigator.of(context).push(
+                        AppPageRoute(builder: (_) => const LanguageScreen())),
                   ),
                   MenuItem(
                     icon: Icons.help_outline_rounded,
                     label: 'Help & Support',
-                    onTap: () => Navigator.of(context).push(AppPageRoute(builder: (_) => const HelpSupportScreen())),
+                    onTap: () => Navigator.of(context).push(AppPageRoute(
+                        builder: (_) => const HelpSupportScreen())),
                   ),
                   MenuItem(
                     icon: Icons.info_outline_rounded,
                     label: 'About Truxify',
                     showDivider: false,
-                    onTap: () => Navigator.of(context).push(AppPageRoute(builder: (_) => const AboutScreen())),
+                    onTap: () => Navigator.of(context).push(
+                        AppPageRoute(builder: (_) => const AboutScreen())),
                   ),
                 ],
               ),
@@ -173,7 +187,8 @@ class ProfileScreen extends StatelessWidget {
                   MenuItem(
                     icon: Icons.logout_rounded,
                     label: 'Logout',
-                    iconBackgroundColor: TruxifyColors.error.withValues(alpha: 0.12),
+                    iconBackgroundColor:
+                        TruxifyColors.error.withValues(alpha: 0.12),
                     iconColor: TruxifyColors.error,
                     textColor: TruxifyColors.error,
                     showChevron: false,
@@ -218,13 +233,16 @@ class _StatsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final surface = Theme.of(context).colorScheme.surface;
-    final dividerColor = (Theme.of(context).brightness == Brightness.dark ? TruxifyColors.darkBorder : TruxifyColors.border);
+    final dividerColor = (Theme.of(context).brightness == Brightness.dark
+        ? TruxifyColors.darkBorder
+        : TruxifyColors.border);
     return Container(
       decoration: BoxDecoration(
         color: surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [
-          BoxShadow(color: Color(0x14000000), blurRadius: 8, offset: Offset(0, 2)),
+          BoxShadow(
+              color: Color(0x14000000), blurRadius: 8, offset: Offset(0, 2)),
         ],
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
@@ -281,7 +299,9 @@ class _StatColumn extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: addRightDivider ? Border(right: BorderSide(color: dividerColor)) : null,
+        border: addRightDivider
+            ? Border(right: BorderSide(color: dividerColor))
+            : null,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
@@ -315,8 +335,10 @@ class _DarkModeMenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = TruxifyScope.of(context);
-    final isDark = controller.isDarkMode;
-    final iconBg = isDark ? TruxifyColors.darkAccentLight : TruxifyColors.accentLight;
+    final currentTheme = controller.themeMode;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconBg =
+        isDark ? TruxifyColors.darkAccentLight : TruxifyColors.accentLight;
     return Column(
       children: [
         Padding(
@@ -330,22 +352,37 @@ class _DarkModeMenuItem extends StatelessWidget {
                   color: iconBg,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.dark_mode_rounded, size: 17, color: TruxifyColors.accent),
+                child: const Icon(Icons.dark_mode_rounded,
+                    size: 17, color: TruxifyColors.accent),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Dark Mode',
+                  'Theme',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w500,
                         fontSize: 14,
                       ),
                 ),
               ),
-              Switch(
-                value: isDark,
-                onChanged: (_) => controller.toggleDarkMode(),
-                activeThumbColor: TruxifyColors.accent,
+              Text(
+                currentTheme.name[0].toUpperCase() +
+                    currentTheme.name.substring(1),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: TruxifyColors.adaptiveSecondaryText(context),
+                    ),
+              ),
+              PopupMenuButton<ThemeMode>(
+                onSelected: controller.setThemeMode,
+                icon: Icon(
+                  Icons.keyboard_arrow_down_rounded,
+                  color: TruxifyColors.adaptiveSecondaryText(context),
+                ),
+                itemBuilder: (context) => const [
+                  PopupMenuItem(value: ThemeMode.system, child: Text('System')),
+                  PopupMenuItem(value: ThemeMode.light, child: Text('Light')),
+                  PopupMenuItem(value: ThemeMode.dark, child: Text('Dark')),
+                ],
               ),
             ],
           ),
