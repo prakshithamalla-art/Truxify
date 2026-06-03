@@ -15,7 +15,6 @@ class MarketplaceRepository {
         .eq('is_en_route', false)
         .order('created_at', ascending: false);
 
-    if (rows is! List) return const <LoadOffer>[];
     return rows.whereType<Map<String, dynamic>>().map(_mapLoadOffer).toList(growable: false);
   }
 
@@ -26,7 +25,6 @@ class MarketplaceRepository {
         .eq('is_en_route', true)
         .order('created_at', ascending: false);
 
-    if (rows is! List) return const <LoadOffer>[];
     return rows.whereType<Map<String, dynamic>>().map(_mapLoadOffer).toList(growable: false);
   }
 
@@ -49,7 +47,6 @@ class MarketplaceRepository {
 
   Future<List<DriverBid>> fetchDriverBids({required String driverId}) async {
     final rows = await _client.from('load_bids').select().eq('driver_id', driverId).order('created_at', ascending: false);
-    if (rows is! List) return const <DriverBid>[];
     return rows.whereType<Map<String, dynamic>>().map(DriverBid.fromJson).toList(growable: false);
   }
 
@@ -71,16 +68,16 @@ class MarketplaceRepository {
         ? _formatCurrency(n('estimated_profit'))
         : (row.containsKey('estimatedProfit') ? s('estimatedProfit') : s('estimated_profit', netProfit));
 
-    final isBestProfit = b('best_profit', false);
+    final isBestProfit = b('is_best_profit', b('best_profit', false));
 
     return LoadOffer(
       id: s('id'),
       route: s('route', s('route_label')),
       routeSubtitle: s('route_subtitle'),
-      customer: s('customer', 'Customer'),
-      company: s('company', 'Company'),
+      customer: s('customer_name', s('customer', 'Customer')),
+      company: s('company_name', s('company', 'Company')),
       goods: s('goods_type', s('goods', 'Goods')),
-      pickup: s('pickup_location', s('pickup', 'Pickup')),
+      pickup: s('pickup_address', s('pickup_location', s('pickup', 'Pickup'))),
       distanceFromDriver: s('distance_from_driver', '—'),
       estimatedProfit: estimatedProfit,
       fuelCost: row.containsKey('fuel_cost') ? _formatCurrency(n('fuel_cost')) : s('fuelCost', '₹0'),
@@ -111,7 +108,8 @@ class MarketplaceRepository {
   }
 
   String _formatCurrency(num value) {
-    final rounded = value.round();
+    final rupees = value / 100;
+    final rounded = rupees.round();
     return '₹$rounded';
   }
 }
