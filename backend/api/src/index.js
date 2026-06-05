@@ -5,6 +5,7 @@ import http from 'http';
 import dotenv from 'dotenv';
 import path from 'path';
 import rateLimit from 'express-rate-limit';
+import tripRoutes from './routes/tripRoutes.js';
 
 // Pre-load DB config to execute client setups
 import './config/db.js';
@@ -76,6 +77,9 @@ app.use(cors({
 // Payload parsers
 app.use(express.json({ limit: '1mb' })); // Added payload limit for security
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+app.use('/api/orders', orderRoutes);
+app.use('/api/driver', driverRoutes);
+app.use('/api/v1/trips', tripRoutes); // 🔌 ADDED THIS LINE FOR OFFLINE SYNC
 
 // ============================================================================
 // RATE LIMITING
