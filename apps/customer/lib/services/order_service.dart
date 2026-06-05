@@ -70,7 +70,7 @@ class OrderService {
     debugPrint('Orders response: $response');
 
     return List<Map<String, dynamic>>.from(response);
-}
+  } 
 
   Future<List<Map<String, dynamic>>> fetchOrderTimeline(
     String orderDisplayId,
