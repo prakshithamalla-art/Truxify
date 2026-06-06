@@ -81,20 +81,57 @@ router.put('/online', authenticate, requireRole(['driver']), async (req, res) =>
 // ============================================================================
 router.get('/wallet/history', authenticate, requireRole(['driver']), async (req, res) => {
   try {
-    const { data: transactions, error } = await supabase
-      .from('wallet_transactions')
-      .select('*')
-      .eq('driver_id', req.user.id)
-      .order('created_at', { ascending: false });
+    const page = parseInt(req.query.page || '1', 10);
+    const limit = parseInt(req.query.limit || '20', 10);
 
-    if (error) {
-      return res.status(500).json({ error: 'Failed to fetch transaction history.', details: error.message });
+    // Validation
+    if (isNaN(page) || page < 1) {
+      return res.status(400).json({
+        error: 'page must be greater than or equal to 1'
+      });
     }
 
-    res.json(transactions || []);
+    if (isNaN(limit) || limit < 1 || limit > 100) {
+      return res.status(400).json({
+        error: 'limit must be between 1 and 100'
+      });
+    }
+
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    const {
+      data: transactions,
+      error,
+      count
+    } = await supabase
+      .from('wallet_transactions')
+      .select('*', { count: 'exact' })
+      .eq('driver_id', req.user.id)
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error) {
+      return res.status(500).json({
+        error: 'Failed to fetch transaction history.',
+        details: error.message
+      });
+    }
+
+    res.json({
+      page,
+      limit,
+      total: count || 0,
+      totalPages: Math.ceil((count || 0) / limit),
+      transactions: transactions || []
+    });
 
   } catch (err) {
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Wallet history fetch error:', err);
+
+    res.status(500).json({
+      error: 'Internal Server Error'
+    });
   }
 });
 
@@ -105,25 +142,21 @@ router.get('/earnings/summary', authenticate, requireRole(['driver']), async (re
   const limitDays = parseInt(req.query.days || '30', 10);
 
   try {
-    // Queries earnings daily table
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - limitDays);
+
     const { data: summary, error } = await supabase
       .from('earnings_daily')
       .select('day_date, amount, trip_count')
       .eq('driver_id', req.user.id)
+      .gte('day_date', cutoff.toISOString().split('T')[0])
       .order('day_date', { ascending: true });
 
     if (error) {
       return res.status(500).json({ error: 'Failed to fetch earnings summary.', details: error.message });
     }
 
-    // Filter last N days programmatically if needed (or through standard query filters)
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - limitDays);
-    const filtered = (summary || []).filter(item => {
-      return new Date(item.day_date) >= cutoff;
-    });
-
-    res.json(filtered);
+    res.json(summary || []);
 
   } catch (err) {
     res.status(500).json({ error: 'Internal Server Error' });
@@ -160,41 +193,23 @@ router.post('/wallet/withdraw', authenticate, requireRole(['driver']), async (re
       });
     }
 
-    // 5.2 Perform updates:
-    // Update balances
-    const { error: balanceErr } = await supabase
-      .from('driver_details')
-      .update({
-        wallet_confirmed: details.wallet_confirmed - amount,
-        wallet_pending: details.wallet_confirmed + amount, // Mark as pending payout
-        updated_at: new Date().toISOString()
-      })
-      .eq('user_id', req.user.id);
+    // 5.2 Execute atomically via Supabase RPC
+    const { error: rpcErr } = await supabase.rpc('withdraw_funds_tx', {
+      p_driver_id: req.user.id,
+      p_amount:    amount
+    });
 
-    if (balanceErr) {
-      return res.status(500).json({ error: 'Failed to modify wallet balances.', details: balanceErr.message });
-    }
-
-    // Insert pending withdrawal transaction
-    const { data: txn, error: txnErr } = await supabase
-      .from('wallet_transactions')
-      .insert({
-        driver_id: req.user.id,
-        amount,
-        txn_type: 'withdrawal',
-        status: 'pending',
-        description: 'Withdrawal to registered bank account'
-      })
-      .select('*')
-      .single();
-
-    if (txnErr) {
-      console.error('Withdrawal transaction log failure:', txnErr.message);
+    if (rpcErr) {
+      return res.status(400).json({
+        error: rpcErr.message.includes('Insufficient')
+          ? 'Insufficient confirmed balance.'
+          : 'Withdrawal failed.',
+        details: rpcErr.message
+      });
     }
 
     res.status(200).json({
-      message: 'Withdrawal request initiated successfully. Funds are pending processing.',
-      transaction: txn
+      message: 'Withdrawal request initiated successfully.'
     });
 
   } catch (err) {

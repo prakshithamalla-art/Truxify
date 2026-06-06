@@ -1,10 +1,47 @@
-version: '3.8'
 services:
   api:
-    build: ./backend/api
+    build:
+      context: ./backend/api
+      target: development
     ports:
-      - "3000:3000"
-  ml:
-    build: ./backend/ml
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      MONGODB_URI: mongodb://mongo:27017
+      MONGODB_DB_NAME: truxify_telemetry
+      REDIS_URL: redis://redis:6379
+    volumes:
+      - ./backend/api:/app
+      - /app/node_modules
+    depends_on:
+      - mongo
+      - redis
+      - db
+
+  db:
+    image: postgis/postgis:15-3.3-alpine
     ports:
-      - "8001:8001"
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgrespassword}
+      POSTGRES_DB: ${POSTGRES_DB:-truxify}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  mongo:
+    image: mongo:6-jammy
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  mongo_data:
+  postgres_data:
