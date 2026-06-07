@@ -160,6 +160,11 @@ describe('Bid Routes', () => {
       order_display_id: 'OD1',
     });
 
+    m.store.load_offers.push({
+      id: 'load-1',
+      order_display_id: 'OD1',
+    });
+
     m.store.load_bids.push({
       id: 'bid-1',
       load_id: 'load-1',
