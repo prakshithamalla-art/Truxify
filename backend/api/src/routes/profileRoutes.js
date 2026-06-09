@@ -5,6 +5,7 @@ import {
   getCustomerStats,
   getDriverDetails
 } from '../services/profileService.js';
+import { supabase } from '../config/db.js';
 
 import { ProfileModel } from '../models/ProfileModel.js';
 
@@ -52,6 +53,7 @@ router.put('/', authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
     const { full_name, language, dark_mode, is_online } = req.body;
+    const role = req.user.role;
 
     const { data, error } = await supabase
       .from('profiles')
@@ -65,19 +67,16 @@ router.put('/', authenticate, async (req, res) => {
       .single();
 
     if (error) throw error;
-
-    // role-specific update (driver only)
-    if (req.user.role === 'driver' && typeof is_online !== 'undefined') {
+    if (role === 'driver' && typeof is_online === 'boolean') {
       const { error: driverError } = await supabase
-        .from('driver_details')
-        .update({
-          is_online
-        })
-        .eq('user_id', userId);
+      .from('driver_details')
+      .update({
+        is_online
+      })
+      .eq('user_id', userId);
 
       if (driverError) throw driverError;
     }
-
     res.json({
       message: 'Profile updated',
       profile: data
