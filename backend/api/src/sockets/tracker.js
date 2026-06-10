@@ -40,6 +40,11 @@ export async function isWebSocketUpgradeAllowed(request) {
 
     if (attempts === 1) {
       await redisClient.expire(key, WS_UPGRADE_RATE_WINDOW_SECONDS);
+    } else {
+      const ttl = await redisClient.ttl(key);
+      if (ttl === -1) {
+        await redisClient.expire(key, WS_UPGRADE_RATE_WINDOW_SECONDS);
+      }
     }
 
     return attempts <= WS_UPGRADE_RATE_LIMIT;

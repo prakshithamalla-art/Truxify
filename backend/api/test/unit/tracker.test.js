@@ -182,7 +182,6 @@ describe('tracker WebSocket heartbeat messages', () => {
   });
 });
 
-<<<<<<< HEAD
 describe('tracker graceful shutdown', () => {
   afterEach(async () => {
     __testing.setShutdownState();
@@ -246,11 +245,12 @@ describe('tracker WebSocket upgrade rate limiting', () => {
   it('allows requests within the Redis-backed per-IP limit', async () => {
     const incr = vi.fn().mockResolvedValue(1);
     const expire = vi.fn().mockResolvedValue(1);
+    const ttl = vi.fn().mockResolvedValue(60);
 
     vi.resetModules();
     vi.doMock('../../src/config/db.js', () => ({
       mongoDb: null,
-      redisClient: { incr, expire },
+      redisClient: { incr, expire, ttl },
       firebaseAdmin: null,
       supabase: null,
     }));
@@ -268,11 +268,13 @@ describe('tracker WebSocket upgrade rate limiting', () => {
 
   it('blocks the sixth upgrade attempt for the same IP', async () => {
     const incr = vi.fn().mockResolvedValue(6);
+    const expire = vi.fn().mockResolvedValue(1);
+    const ttl = vi.fn().mockResolvedValue(60);
 
     vi.resetModules();
     vi.doMock('../../src/config/db.js', () => ({
       mongoDb: null,
-      redisClient: { incr, expire: vi.fn() },
+      redisClient: { incr, expire, ttl },
       firebaseAdmin: null,
       supabase: null,
     }));
@@ -284,6 +286,8 @@ describe('tracker WebSocket upgrade rate limiting', () => {
     });
 
     expect(allowed).toBe(false);
+    expect(ttl).toHaveBeenCalledWith('ws:upgrade:198.51.100.7');
+    expect(expire).not.toHaveBeenCalled();
   });
 
   it('tracks separate IP addresses independently', async () => {
@@ -294,11 +298,12 @@ describe('tracker WebSocket upgrade rate limiting', () => {
       return next;
     });
     const expire = vi.fn().mockResolvedValue(1);
+    const ttl = vi.fn().mockResolvedValue(60);
 
     vi.resetModules();
     vi.doMock('../../src/config/db.js', () => ({
       mongoDb: null,
-      redisClient: { incr, expire },
+      redisClient: { incr, expire, ttl },
       firebaseAdmin: null,
       supabase: null,
     }));
@@ -317,6 +322,30 @@ describe('tracker WebSocket upgrade rate limiting', () => {
     expect(await isWebSocketUpgradeAllowed(secondIpRequest)).toBe(true);
   });
 
+  it('sets expiration using fallback TTL check when attempts > 1 and TTL is missing (-1)', async () => {
+    const incr = vi.fn().mockResolvedValue(3);
+    const ttl = vi.fn().mockResolvedValue(-1); // no TTL exists
+    const expire = vi.fn().mockResolvedValue(1);
+
+    vi.resetModules();
+    vi.doMock('../../src/config/db.js', () => ({
+      mongoDb: null,
+      redisClient: { incr, expire, ttl },
+      firebaseAdmin: null,
+      supabase: null,
+    }));
+
+    const { isWebSocketUpgradeAllowed } = await import('../../src/sockets/tracker.js');
+    const allowed = await isWebSocketUpgradeAllowed({
+      headers: {},
+      socket: { remoteAddress: '198.51.100.12' },
+    });
+
+    expect(allowed).toBe(true);
+    expect(ttl).toHaveBeenCalledWith('ws:upgrade:198.51.100.12');
+    expect(expire).toHaveBeenCalledWith('ws:upgrade:198.51.100.12', 60);
+  });
+
   it('allows upgrades and logs when Redis rate limiting fails', async () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -326,6 +355,7 @@ describe('tracker WebSocket upgrade rate limiting', () => {
       redisClient: {
         incr: vi.fn().mockRejectedValue(new Error('redis down')),
         expire: vi.fn(),
+        ttl: vi.fn(),
       },
       firebaseAdmin: null,
       supabase: null,
@@ -484,6 +514,7 @@ describe('handleLocationPing - with Redis', () => {
     const redisSet = vi.fn().mockResolvedValue('OK');
     const redisClient = { get: redisGet, set: redisSet };
 
+    vi.resetModules();
     vi.doMock('../../src/config/db.js', () => ({
       mongoDb: null,
       redisClient,
